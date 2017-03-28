@@ -30,4 +30,20 @@ public class User {
     public void setUserId(String userId) {
         this.userId = userId;
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof User)) return false;
+
+        User user = (User) o;
+        return userName.equals(user.userName) && userId.equals(user.userId);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = userName.hashCode();
+        result = 31 * result + userId.hashCode();
+        return result;
+    }
 }

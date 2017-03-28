@@ -61,7 +61,7 @@ public class GameService {
             final PrivateReply hostJoinedGameReply = new PrivateReply(MessageTemplates.createGameLobbyHasBeenCreatedPrivateMessageBody(userName, proposedTimeInHours));
             slackService.postPrivateReplyToMessage(newGame.getGameMessageUrl(), hostJoinedGameReply);
 
-            logger.info("The channel was notified about {}s game invite.", userName);
+            logger.info("The channel was notified about {}'s game invite.", userName);
         } else {
             logger.info("Active game already exists for {}", userName);
 
@@ -117,26 +117,27 @@ public class GameService {
             return;
         }
 
-        if (game.getPlayerByName(hostName).isPresent()) {
-            logger.info("{} has already joined {}s game.", hostName, hostName);
+        String playerName = player.getUserName();
+        if (game.getPlayerByName(playerName).isPresent() || game.getHost().equals(player)) {
+            logger.info("{} has already joined {}'s game.", playerName, hostName);
 
             final PrivateReply privateReply = new PrivateReply(MessageTemplates.createAlreadyJoinedThisGamePrivateMessageBody());
             slackService.postPrivateReplyToMessage(messageUrl, privateReply);
         } else {
-            logger.info("Adding {} to {}s game.", hostName, hostName);
+            logger.info("Adding {} to {}'s game.", playerName, hostName);
 
             game.join(player);
 
-            final PrivateReply userJoinedGameReply = new PrivateReply(MessageTemplates.createGameLobbyPlayerStatusPrivateMessageBody(player.getUserName()));
+            final PrivateReply userJoinedGameReply = new PrivateReply(MessageTemplates.createGameLobbyPlayerStatusPrivateMessageBody(playerName));
             slackService.postPrivateReplyToMessage(game.getGameMessageUrl(), userJoinedGameReply);
 
-            logger.info("The host was notified that {} joined their game.", hostName);
+            logger.info("The host was notified that {} joined their game.", playerName);
 
             final String scheduledTime = dateTimeFormatter.print(game.getScheduledTime().getTime());
             final PrivateReply privateConfirmation = new PrivateReply(MessageTemplates.createSuccessfullyJoinedGamePrivateMessageBody(game.getHost().getUserName(), scheduledTime));
             slackService.postPrivateReplyToMessage(messageUrl, privateConfirmation);
 
-            logger.info("The user was notified that they joined {}s game.", hostName);
+            logger.info("The user was notified that they joined {}'s game.", playerName);
         }
     }
 
@@ -155,7 +156,7 @@ public class GameService {
 
             slackService.postMessageToChannel(MessageTemplates.createGameCancelledChannelMessageBody(userName));
 
-            logger.info("The channel was notified that {}s game has been cancelled.", userName);
+            logger.info("The channel was notified that {}'s game has been cancelled.", userName);
         } else {
             logger.info("There are no active games by {} to cancel", userName);
 
@@ -170,7 +171,7 @@ public class GameService {
         if (game != null) {
             final Date proposedTime = getProposedTimeAsDate(proposedTimeInHours);
 
-            logger.info("Updating {}s game time from {} to {}", userName, game.getScheduledTime(), proposedTimeInHours);
+            logger.info("Updating {}'s game time from {} to {}", userName, game.getScheduledTime(), proposedTimeInHours);
 
             game.reschedule(proposedTime);
 
@@ -181,7 +182,7 @@ public class GameService {
 
             slackService.postMessageToChannel(MessageTemplates.createGameRescheduledChannelMessageBody(userName, proposedTimeInHours));
 
-            logger.info("The channel was notified that {}s game has been rescheduled.", userName);
+            logger.info("The channel was notified that {}'s game has been rescheduled.", userName);
         } else {
             logger.info("There are no active games by {} to update", userName);
 

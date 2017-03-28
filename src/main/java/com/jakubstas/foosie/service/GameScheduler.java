@@ -40,7 +40,7 @@ public class GameScheduler {
         for (final User host : gamesCache.getSetOfHosts()) {
             final Game game = gamesCache.findByHostName(host.getUserName());
 
-            logger.info("Checking {}s game scheduled at {}", host.getUserName(), game.getScheduledTime());
+            logger.info("Checking {}'s game scheduled at {}", host.getUserName(), game.getScheduledTime());
 
             if (isItTheTimeToKickOffTheGame(game)) {
                 if (hasTheGameExpired(game)) {
