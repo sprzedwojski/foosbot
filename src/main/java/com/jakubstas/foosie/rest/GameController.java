@@ -31,6 +31,11 @@ public class GameController {
     @Autowired
     private SlackProperties slackProperties;
 
+    @RequestMapping(method = RequestMethod.GET)
+    public String index() {
+        return "Welcome to foosbot";
+    }
+
     @RequestMapping(method = RequestMethod.POST, consumes = "application/x-www-form-urlencoded;charset=UTF-8")
     public void doAction(@RequestParam(value = "response_url") String responseUrl,
                            @RequestParam(value = "token") String token,
