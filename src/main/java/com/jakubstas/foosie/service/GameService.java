@@ -70,6 +70,43 @@ public class GameService {
         }
     }
 
+    public void createGame(final @NotBlank(message = "Username cannot be empty!") String userName,
+                           final @NotBlank(message = "User ID cannot be empty!") String userId,
+                           final @NotBlank(message = "Response URL cannot be empty!") String messageUrl) {
+        final Game game = gamesCache.findByHostName(userName);
+
+        if (game == null) {
+            final Calendar cal = Calendar.getInstance();
+            cal.add(Calendar.MINUTE, 30); // expiry date in 30 mins
+            final Date proposedTime = new Date(cal.getTimeInMillis());
+            final User host = new User(userName, userId);
+
+            final Game newGame = new Game(host, messageUrl, proposedTime);
+            newGame.setStartGameASAP(true);
+            gamesCache.hostGame(host, newGame);
+
+            logger.info("Created a new game for {} scheduled at {}", userName, proposedTime);
+
+            final String proposedTimeInHours = ">>ASAP<<";
+            final PrivateReply gameCreatedReply = new PrivateReply(MessageTemplates.createGameInvitePrivateMessageForHostBody(proposedTimeInHours));
+            slackService.postPrivateReplyToMessage(messageUrl, gameCreatedReply);
+
+            logger.info("The host {} was notified that their game invite has been registered.", userName);
+
+            slackService.postMessageToChannel(MessageTemplates.createGameInviteChannelMessageBody(userName, proposedTimeInHours));
+
+            final PrivateReply hostJoinedGameReply = new PrivateReply(MessageTemplates.createGameLobbyHasBeenCreatedPrivateMessageBody(userName, proposedTimeInHours));
+            slackService.postPrivateReplyToMessage(newGame.getGameMessageUrl(), hostJoinedGameReply);
+
+            logger.info("The channel was notified about {}'s game invite.", userName);
+        } else {
+            logger.info("Active game already exists for {}", userName);
+
+            final PrivateReply alreadyActiveHostReply = new PrivateReply(MessageTemplates.createGameInviteAlreadyPostedPrivateMessageBody());
+            slackService.postPrivateReplyToMessage(messageUrl, alreadyActiveHostReply);
+        }
+    }
+
     public void joinGame(final String userName, final String userId, final Optional<String> hostNameOptional, final @NotBlank(message = "Response URL cannot be empty!") String messageUrl) {
         final User player = new User(userName, userId);
 
@@ -138,6 +175,15 @@ public class GameService {
             slackService.postPrivateReplyToMessage(messageUrl, privateConfirmation);
 
             logger.info("The user was notified that they joined {}'s game.", playerName);
+
+            // TODO Check if can start the game
+            if(game.isStartGameASAP() && game.isReady()) {
+                try {
+                    kickOffGame(game);
+                } catch (UnsupportedEncodingException e) {
+                    e.printStackTrace();
+                }
+            }
         }
     }
 

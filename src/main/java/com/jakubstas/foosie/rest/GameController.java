@@ -60,7 +60,7 @@ public class GameController {
         }
 
         if(NEW.equals(action)) {
-            createGame(userName, userId, args.trim(), responseUrl);
+            createGame(userName, userId, args, responseUrl);
         } else if(JOIN.equals(action)) {
             joinGame(userName, userId, args.trim(), responseUrl);
         } else if(UPDATE.equals(action)) {
@@ -76,7 +76,9 @@ public class GameController {
     }
 
     private void createGame(String userName, String userId, String text, String responseUrl) {
-        gameService.createGame(userName, userId, responseUrl, text);
+        if(StringUtils.isEmpty(text))
+            gameService.createGame(userName, userId, responseUrl);
+        gameService.createGame(userName, userId, responseUrl, text.trim());
     }
 
     private void joinGame(String userName, String userId, String hostName, String responseUrl) {

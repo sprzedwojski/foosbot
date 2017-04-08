@@ -21,6 +21,8 @@ public class Game {
     @TodayButFuture
     private Date scheduledTime;
 
+    private boolean startGameASAP = false;
+
     public Game(final User player, final String gameMessageUrl, final Date scheduledTime) {
         this.gameMessageUrl = gameMessageUrl;
         this.scheduledTime = scheduledTime;
@@ -64,5 +66,13 @@ public class Game {
         } else {
             return Optional.of(player.get(0));
         }
+    }
+
+    public boolean isStartGameASAP() {
+        return startGameASAP;
+    }
+
+    public void setStartGameASAP(boolean startGameASAP) {
+        this.startGameASAP = startGameASAP;
     }
 }
